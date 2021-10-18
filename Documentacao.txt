@@ -1,0 +1,7 @@
+pip install keras
+pip install tensorflow
+pip install testresources
+pip install opencv-python
+pip install opencv-python-headless
+
+https://opencv24-python-tutorials.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_thresholding/py_thresholding.html
