@@ -1,3 +1,4 @@
+from os import truncate
 import cv2
 import numpy as np
 from keras.datasets import mnist
@@ -38,6 +39,7 @@ class Preprocessing:
     global process
     global model
     global test
+    global setDatabase
 
     def sort_contours(cnts):
         # initialize the reverse flag and sort index
@@ -183,14 +185,16 @@ class Preprocessing:
 
             plt.show()
             projectedDigits.append(concat_p)
+
+        # projectedDigits.reshape(28, 28)
         return projectedDigits
 
     def projection_database(digit):
         vertical_p = digit.copy()
         horizontal_p = digit.copy()
         concat_p = digit.copy()
-        (h, w, _) = vertical_p.shape
-        (h, w, _) = horizontal_p.shape
+        (h, w) = vertical_p.shape
+        (h, w) = horizontal_p.shape
         a = [0 for z in range(0, w)]
         b = [0 for z in range(0, w)]
 
@@ -232,40 +236,15 @@ class Preprocessing:
     def process(i):
         return projection_database(i)
 
-    def train():
-        global preprocessedDigits
-        global model
-
-        mnist = datasets.load_digits()
-        (trainData, testData, trainLabels, testLabels) = train_test_split(np.array(mnist.data),
-                                                                          mnist.target, test_size=0.25, random_state=42)
-
-        (trainData, valData, trainLabels, valLabels) = train_test_split(trainData, trainLabels,
-                                                                        test_size=0.1, random_state=84)
-
-        kVals = range(1, 30, 2)
-        accuracies = []
-
-        for k in range(1, 30, 2):
-            # train the k-Nearest Neighbor classifier with the current value of `k`
-            model = KNeighborsClassifier(n_neighbors=k)
-            model.fit(trainData, trainLabels)
-
-            # evaluate the model and update the accuracies list
-            score = model.score(valData, valLabels)
-            print("k=%d, accuracy=%.2f%%" % (k, score * 100))
-            accuracies.append(score)
-
-        i = int(np.argmax(accuracies))
-
-        (X_train, y_train), (X_test, y_test) = initializeDataset()
+    def setDatabase():
+        (X_train, y_train), (X_test, y_test) = mnist.load_data()
 
         # So, let’s reshape the dataset according to our model.
         # 60000 -> number of images, 28x28 -> size of each image, 1 -> image in greyScale
-        X_train = X_train.reshape(28, 28)
-        X_test = X_test.reshape(28, 28)
-        y_train = to_categorical(y_train)
-        y_test = to_categorical(y_test)
+        # X_train = X_train.reshape(28, 28)
+        # X_test = X_test.reshape(28, 28)
+        # y_train = to_categorical(y_train)
+        # y_test = to_categorical(y_test)
 
         X_train_proj = []
         X_train_proj = Parallel(n_jobs=4)(
@@ -275,8 +254,10 @@ class Preprocessing:
         X_test_proj = Parallel(n_jobs=4)(
             delayed(process)(i) for i in X_test)
 
-        X_train = X_train_proj
-        X_test = X_test_proj
+        X_train = np.array(X_train_proj)
+        X_test = np.array(X_test_proj)
+
+        print(X_train.shape())
 
         with open("X_train_database.txt", "wb") as fp:
             pickle.dump(X_train, fp)
@@ -290,6 +271,9 @@ class Preprocessing:
         with open("y_test_database.txt", "wb") as fp:
             pickle.dump(y_test, fp)
 
+    def train():
+        setDatabase()
+
         with open("X_train_database.txt", "rb") as fp:
             X_train = pickle.load(fp)
 
@@ -302,6 +286,46 @@ class Preprocessing:
         with open("y_test_database.txt", "rb") as fp:
             y_test = pickle.load(fp)
 
+        # mnist = datasets.load_digits()
+        # (trainData, testData, trainLabels, testLabels) = train_test_split(np.array(mnist.data),
+        #                                                                   mnist.target, test_size=0.25, random_state=42)
+
+        # (trainData, valData, trainLabels, valLabels) = train_test_split(trainData, trainLabels,
+        #                                                                 test_size=0.1, random_state=84)
+        # trainData = np.array(trainData)
+        # print(trainData.shape())
+
+        # X_train_proj = []
+        # X_train_proj = Parallel(n_jobs=4)(
+        #     delayed(process)(i) for i in trainData)
+
+        # X_test_proj = []
+        # X_test_proj = Parallel(n_jobs=4)(
+        #     delayed(process)(i) for i in trainLabels)
+
+        # trainData = X_train_proj
+        # trainLabels = X_test_proj
+
+        kVals = range(1, 30, 2)
+        accuracies = []
+
+        for k in range(1, 30, 2):
+            # train the k-Nearest Neighbor classifier with the current value of `k`
+            model = KNeighborsClassifier(n_neighbors=k)
+            model.fit(X_train, X_test)
+
+            # evaluate the model and update the accuracies list
+            score = model.score(y_train, y_test)
+            print("k=%d, accuracy=%.2f%%" % (k, score * 100))
+            accuracies.append(score)
+
+        i = int(np.argmax(accuracies))
+
+        # So, let’s reshape the dataset according to our model.
+        # 60000 -> number of images, 28x28 -> size of each image, 1 -> image in greyScale
+        # X_train = X_train.reshape(28, 28)
+        # X_test = X_test.reshape(28, 28)
+
         X_train, y_train = make_classification()
         DistanceMetric.get_metric('mahalanobis', V=np.cov(X_train))
         model_nn = KNeighborsClassifier(algorithm='brute',
@@ -311,8 +335,8 @@ class Preprocessing:
         model_nn = KNeighborsClassifier(n_neighbors=3)
 
         model_nn.fit(X_train, y_train)
-        predictions = model_nn.predict(X_test)
-        print(predictions)
+        # predictions = model_nn.predict(X_test)
+        # print(predictions)
         knnPickle = open('model_knn', 'wb')
         pickle.dump(model_nn, knnPickle)
 
@@ -346,10 +370,12 @@ class Preprocessing:
             X_test = pickle.load(fp)
         inp = np.array(processedDigits)
         output = []
-        result = model.predict(X_test)
+        # result = model.predict(X_test)
         # result = model.predict(inp)
         for digit in inp:
-            digit = digit.reshape(28, 28)
+            predictions = model.predict(digit)
+            print(predictions)
+            # digit = digit.reshape(28, 28)
             # result = model.predict(digit)
             # output.append(result)
             print("\n\n---------------------------------------\n\n")
