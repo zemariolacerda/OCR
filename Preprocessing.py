@@ -13,12 +13,18 @@ from sklearn import model_selection, datasets
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.datasets import make_classification
 from sklearn.neighbors import DistanceMetric, KNeighborsClassifier
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
 import joblib
 import pickle
 import warnings
 import tensorflow as tf
 from tensorflow import keras
 from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC, LinearSVC
+import matplotlib.pyplot as matplot
+import seaborn as sb
+from sklearn import svm
 warnings.filterwarnings("ignore")
 
 
@@ -272,7 +278,7 @@ class Preprocessing:
             pickle.dump(y_test, fp)
 
     def train():
-        setDatabase()
+        # setDatabase()
 
         with open("X_train_database.txt", "rb") as fp:
             X_train = pickle.load(fp)
@@ -286,111 +292,28 @@ class Preprocessing:
         with open("y_test_database.txt", "rb") as fp:
             y_test = pickle.load(fp)
 
-        # mnist = datasets.load_digits()
-        # (trainData, testData, trainLabels, testLabels) = train_test_split(np.array(mnist.data),
-        #                                                                   mnist.target, test_size=0.25, random_state=42)
+        (X_train, y_train), (X_test, y_test) = mnist.load_data()
 
-        # (trainData, valData, trainLabels, valLabels) = train_test_split(trainData, trainLabels,
-        #                                                                 test_size=0.1, random_state=84)
-        # trainData = np.array(trainData)
-        # print(trainData.shape())
+        X_train = np.concatenate((X_train, y_train), axis=0)
+        X_test = np.concatenate((X_test, y_test), axis=0)
 
-        # X_train_proj = []
-        # X_train_proj = Parallel(n_jobs=4)(
-        #     delayed(process)(i) for i in trainData)
+        svm = LinearSVC(dual=False)
+        svm.fit(X_train, y_train)
 
-        # X_test_proj = []
-        # X_test_proj = Parallel(n_jobs=4)(
-        #     delayed(process)(i) for i in trainLabels)
+        svm.coef_
+        svm.intercept_
 
-        # trainData = X_train_proj
-        # trainLabels = X_test_proj
+        pred = svm.predict(X_test)
+        accuracy_score(y_test, pred)
 
-        kVals = range(1, 30, 2)
-        accuracies = []
+        cm = confusion_matrix(y_test, pred)
 
-        for k in range(1, 30, 2):
-            # train the k-Nearest Neighbor classifier with the current value of `k`
-            model = KNeighborsClassifier(n_neighbors=k)
-            model.fit(X_train, X_test)
-
-            # evaluate the model and update the accuracies list
-            score = model.score(y_train, y_test)
-            print("k=%d, accuracy=%.2f%%" % (k, score * 100))
-            accuracies.append(score)
-
-        i = int(np.argmax(accuracies))
-
-        # So, let’s reshape the dataset according to our model.
-        # 60000 -> number of images, 28x28 -> size of each image, 1 -> image in greyScale
-        # X_train = X_train.reshape(28, 28)
-        # X_test = X_test.reshape(28, 28)
-
-        X_train, y_train = make_classification()
-        DistanceMetric.get_metric('mahalanobis', V=np.cov(X_train))
-        model_nn = KNeighborsClassifier(algorithm='brute',
-                                        metric='mahalanobis',
-                                        metric_params={'V': np.cov(X_train)})
-
-        model_nn = KNeighborsClassifier(n_neighbors=3)
-
-        model_nn.fit(X_train, y_train)
-        # predictions = model_nn.predict(X_test)
-        # print(predictions)
-        knnPickle = open('model_knn', 'wb')
-        pickle.dump(model_nn, knnPickle)
-
-        # Declare the model
-        # model = Sequential()
-
-        # # Declare the layers
-        # layer_1 = Conv2D(32, kernel_size=3, activation='relu',
-        #                  input_shape=(28, 28, 1))
-        # layer_2 = Conv2D(64, kernel_size=3, activation='relu')
-        # layer_3 = Flatten()
-        # layer_4 = Dense(10, activation='softmax')
-
-        # # Add the layers to the model
-        # model.add(layer_1)
-        # model.add(layer_2)
-        # model.add(layer_3)
-        # model.add(layer_4)
-
-        # model.compile(optimizer='adam', loss='categorical_crossentropy',
-        #               metrics=['accuracy'])
-
-        # model.fit(np.array(X_train), np.array(y_train), validation_data=(
-        #     np.array(X_test), np.array(y_test)), epochs=10)
-
-        # model.save("my_model")
+        matplot.subplots(figsize=(10, 6))
+        sb.heatmap(cm, annot=True, fmt='g')
+        matplot.xlabel("Predicted")
+        matplot.ylabel("Actual")
+        matplot.title("Confusion Matrix")
+        matplot.show()
 
     def test(processedDigits):
-        model = pickle.load(open('model_knn', 'rb'))
-        with open("X_test_database.txt", "rb") as fp:
-            X_test = pickle.load(fp)
-        inp = np.array(processedDigits)
-        output = []
-        # result = model.predict(X_test)
-        # result = model.predict(inp)
-        for digit in inp:
-            predictions = model.predict(digit)
-            print(predictions)
-            # digit = digit.reshape(28, 28)
-            # result = model.predict(digit)
-            # output.append(result)
-            print("\n\n---------------------------------------\n\n")
-            print("=========PREDICTION============ \n\n")
-            # plt.imshow(digit.reshape(28, 28), cmap="gray")
-            # plt.show()
-
-            # output.append(format(np.argmax(prediction)))
-
-            # print(
-            #     "\nPrediction (Softmax) from the neural network:\n\n {}".format(prediction))
-            # hard_maxed_prediction = np.zeros(prediction.shape)
-            # hard_maxed_prediction[0][np.argmax(prediction)] = 1
-            # print(
-            #     "\n\nHard-maxed form of the prediction: \n\n {}".format(hard_maxed_prediction))
-            print("\n\n---------------------------------------\n\n")
-
-        print(output)
+        print("")
