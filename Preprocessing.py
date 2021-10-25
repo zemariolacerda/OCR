@@ -174,8 +174,6 @@ class Preprocessing:
             plt.title("Projecao Concatenada")
             plt.show()
 
-            print(a)
-            print(b)
             a = np.array(a)
             b = np.array(b)
 
@@ -187,8 +185,6 @@ class Preprocessing:
 
             projectedDigits.append(array_compress)
 
-            print(array_compress)
-            plt.plot(array_compress)
             plt.show()
 
         # projectedDigits.reshape(28, 28)
@@ -297,28 +293,24 @@ class Preprocessing:
         with open("y_test_database.txt", "rb") as fp:
             y_test = pickle.load(fp)
 
-        X_train = np.array(X_train)
-        y_train = np.array(y_train)
-        print(np.shape(X_train))
-        print(np.shape(y_train))
+        # X_train = np.array(X_train)
+        # y_train = np.array(y_train)
+        # print(np.shape(X_train))
+        # print(np.shape(y_train))
 
-        # print(X_train.shape())
+        # x_size = 60000
+        # y_size = 60000
 
-        # (X_train, y_train), (X_test, y_test) = mnist.load_data()
+        # X_train = X_train[:x_size]
+        # y_train = y_train[:y_size]
 
-        x_size = 60000
-        y_size = 60000
+        # X_train = np.array(X_train).reshape(x_size, 28)
+        # X_test = np.array(X_test).reshape(10000, 28)
 
-        X_train = X_train[:x_size]
-        y_train = y_train[:y_size]
+        # print(np.shape(X_train))
+        # print(np.shape(y_train))
 
-        X_train = np.array(X_train).reshape(x_size, 28)
-        X_test = np.array(X_test).reshape(10000, 28)
-
-        print(np.shape(X_train))
-        print(np.shape(y_train))
-
-        clf = svm.SVC(kernel='rbf', verbose=True)
+        clf = svm.SVC(kernel='poly', degree=5, verbose=True)
 
         clf.fit(X_train, y_train)
 
@@ -328,26 +320,6 @@ class Preprocessing:
         y_pred = clf.predict(X_test)
 
         print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
-        # X_train = np.concatenate((X_train, y_train), axis=0)
-        # X_test = np.concatenate((X_test, y_test), axis=0)
-
-        # svm = LinearSVC(dual=False)
-        # svm.fit(X_train, y_train)
-
-        # svm.coef_
-        # svm.intercept_
-
-        # pred = svm.predict(X_test)
-        # accuracy_score(y_test, pred)
-
-        # cm = confusion_matrix(y_test, pred)
-
-        # matplot.subplots(figsize=(10, 6))
-        # sb.heatmap(cm, annot=True, fmt='g')
-        # matplot.xlabel("Predicted")
-        # matplot.ylabel("Actual")
-        # matplot.title("Confusion Matrix")
-        # matplot.show()
 
     def testSVM(digits):
         clf = pickle.load(open('svm.sav', 'rb'))
@@ -360,4 +332,3 @@ class Preprocessing:
         y_pred = clf.predict(digits)
 
         print("Numeros:", y_pred)
-        print("")

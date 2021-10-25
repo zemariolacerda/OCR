@@ -2,6 +2,7 @@ import tkinter as tk
 from PIL import ImageTk, Image
 from tkinter import Label, filedialog
 import Preprocessing as pr
+import timeit
 # import Preprocessing
 
 fileName = "imagem.png"
@@ -68,7 +69,8 @@ image_label.grid(column=0, row=1, columnspan=7)
 
 def train():
     global digits
-    pr.trainSVM(digits)
+    t = timeit.timeit(lambda: pr.trainSVM(digits), number=1)
+    print(t)
 
 
 def select_contours():
@@ -132,7 +134,8 @@ def projection():
 
 def test():
     global digits
-    pr.testSVM(digits)
+    t = timeit.timeit(lambda: pr.testSVM(digits), number=1)
+    print(t)
 
 
 window.mainloop()
