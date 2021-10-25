@@ -283,7 +283,7 @@ class Preprocessing:
             pickle.dump(y_test, fp)
 
     def trainSVM(digits):
-        setDatabase()
+        # setDatabase()
 
         with open("X_train_database.txt", "rb") as fp:
             X_train = pickle.load(fp)
