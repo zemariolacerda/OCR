@@ -9,7 +9,7 @@ from tensorflow.keras.utils import to_categorical
 import matplotlib.pyplot as plt
 from PIL import Image
 from joblib import Parallel, delayed
-from sklearn import model_selection, datasets
+from sklearn import model_selection, datasets, metrics
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.datasets import make_classification
 from sklearn.neighbors import DistanceMetric, KNeighborsClassifier
@@ -46,6 +46,7 @@ class Preprocessing:
     global model
     global test
     global setDatabase
+    global trainSVM
 
     def sort_contours(cnts):
         # initialize the reverse flag and sort index
@@ -280,40 +281,50 @@ class Preprocessing:
     def trainSVM():
         # setDatabase()
 
-        with open("X_train_database.txt", "rb") as fp:
-            X_train = pickle.load(fp)
+        # with open("X_train_database.txt", "rb") as fp:
+        #     X_train = pickle.load(fp)
 
-        with open("y_train_database.txt", "rb") as fp:
-            y_train = pickle.load(fp)
+        # with open("y_train_database.txt", "rb") as fp:
+        #     y_train = pickle.load(fp)
 
-        with open("X_test_database.txt", "rb") as fp:
-            X_test = pickle.load(fp)
+        # with open("X_test_database.txt", "rb") as fp:
+        #     X_test = pickle.load(fp)
 
-        with open("y_test_database.txt", "rb") as fp:
-            y_test = pickle.load(fp)
-
+        # with open("y_test_database.txt", "rb") as fp:
+        #     y_test = pickle.load(fp)
+        print("aaaaaaaaaaaa")
         (X_train, y_train), (X_test, y_test) = mnist.load_data()
+        print(X_train.shape)
 
-        X_train = np.concatenate((X_train, y_train), axis=0)
-        X_test = np.concatenate((X_test, y_test), axis=0)
+        clf = svm.SVC(kernel='linear')
 
-        svm = LinearSVC(dual=False)
-        svm.fit(X_train, y_train)
+        X_train = [np.concatenate(i) for i in X_train]
 
-        svm.coef_
-        svm.intercept_
+        clf.fit(X_train, y_train)
 
-        pred = svm.predict(X_test)
-        accuracy_score(y_test, pred)
+        y_pred = clf.predict(X_test)
 
-        cm = confusion_matrix(y_test, pred)
+        print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
+        # X_train = np.concatenate((X_train, y_train), axis=0)
+        # X_test = np.concatenate((X_test, y_test), axis=0)
 
-        matplot.subplots(figsize=(10, 6))
-        sb.heatmap(cm, annot=True, fmt='g')
-        matplot.xlabel("Predicted")
-        matplot.ylabel("Actual")
-        matplot.title("Confusion Matrix")
-        matplot.show()
+        # svm = LinearSVC(dual=False)
+        # svm.fit(X_train, y_train)
+
+        # svm.coef_
+        # svm.intercept_
+
+        # pred = svm.predict(X_test)
+        # accuracy_score(y_test, pred)
+
+        # cm = confusion_matrix(y_test, pred)
+
+        # matplot.subplots(figsize=(10, 6))
+        # sb.heatmap(cm, annot=True, fmt='g')
+        # matplot.xlabel("Predicted")
+        # matplot.ylabel("Actual")
+        # matplot.title("Confusion Matrix")
+        # matplot.show()
 
     def test(processedDigits):
         print("")

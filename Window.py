@@ -69,7 +69,7 @@ image_label.grid(column=0, row=1, columnspan=7)
 
 
 def train():
-    pr.train()
+    pr.trainSVM()
 
 
 def select_contours():
