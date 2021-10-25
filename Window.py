@@ -69,7 +69,8 @@ image_label.grid(column=0, row=1, columnspan=7)
 
 
 def train():
-    pr.trainSVM()
+    global digits
+    pr.trainSVM(digits)
 
 
 def select_contours():
@@ -133,7 +134,7 @@ def projection():
 
 def test():
     global digits
-    pr.test(digits)
+    pr.testSVM(digits)
 
 
 window.mainloop()

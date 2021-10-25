@@ -25,6 +25,8 @@ from sklearn.svm import SVC, LinearSVC
 import matplotlib.pyplot as matplot
 import seaborn as sb
 from sklearn import svm
+import scipy.interpolate as interp
+from scipy.ndimage import interpolation
 warnings.filterwarnings("ignore")
 
 
@@ -44,7 +46,7 @@ class Preprocessing:
     global threshold_database
     global process
     global model
-    global test
+    global testSVM
     global setDatabase
     global trainSVM
 
@@ -191,7 +193,21 @@ class Preprocessing:
             plt.title("Projecao Concatenada")
 
             plt.show()
-            projectedDigits.append(concat_p)
+
+            print(a)
+            print(b)
+            a = np.array(a)
+            b = np.array(b)
+
+            array_sum = a + b
+            i = 28
+            z = i/len(array_sum)
+
+            array_compress = interpolation.zoom(array_sum, z)
+
+            projectedDigits.append(array_compress)
+
+            print(array_compress)
 
         # projectedDigits.reshape(28, 28)
         return projectedDigits
@@ -227,8 +243,16 @@ class Preprocessing:
             for i in range(0, b[j]):
                 horizontal_p[j, i] = 0
 
-        concat_p = vertical_p + horizontal_p
-        return concat_p
+        a = np.array(a)
+        b = np.array(b)
+
+        array_sum = a + b
+        i = 28
+        z = i/len(array_sum)
+
+        array_compress = interpolation.zoom(array_sum, z)
+
+        return array_compress
 
     def initializeDataset():
         # Let’s initialize the dataset and segregate into Training and Test set
@@ -264,8 +288,6 @@ class Preprocessing:
         X_train = np.array(X_train_proj)
         X_test = np.array(X_test_proj)
 
-        print(X_train.shape())
-
         with open("X_train_database.txt", "wb") as fp:
             pickle.dump(X_train, fp)
 
@@ -278,29 +300,48 @@ class Preprocessing:
         with open("y_test_database.txt", "wb") as fp:
             pickle.dump(y_test, fp)
 
-    def trainSVM():
-        # setDatabase()
+    def trainSVM(digits):
+        setDatabase()
 
-        # with open("X_train_database.txt", "rb") as fp:
-        #     X_train = pickle.load(fp)
+        with open("X_train_database.txt", "rb") as fp:
+            X_train = pickle.load(fp)
 
-        # with open("y_train_database.txt", "rb") as fp:
-        #     y_train = pickle.load(fp)
+        with open("y_train_database.txt", "rb") as fp:
+            y_train = pickle.load(fp)
 
-        # with open("X_test_database.txt", "rb") as fp:
-        #     X_test = pickle.load(fp)
+        with open("X_test_database.txt", "rb") as fp:
+            X_test = pickle.load(fp)
 
-        # with open("y_test_database.txt", "rb") as fp:
-        #     y_test = pickle.load(fp)
-        print("aaaaaaaaaaaa")
-        (X_train, y_train), (X_test, y_test) = mnist.load_data()
-        print(X_train.shape)
+        with open("y_test_database.txt", "rb") as fp:
+            y_test = pickle.load(fp)
 
-        clf = svm.SVC(kernel='linear')
+        X_train = np.array(X_train)
+        y_train = np.array(y_train)
+        print(np.shape(X_train))
+        print(np.shape(y_train))
 
-        X_train = [np.concatenate(i) for i in X_train]
+        # print(X_train.shape())
+
+        # (X_train, y_train), (X_test, y_test) = mnist.load_data()
+
+        x_size = 60000
+        y_size = 60000
+
+        X_train = X_train[:x_size]
+        y_train = y_train[:y_size]
+
+        X_train = np.array(X_train).reshape(x_size, 28)
+        X_test = np.array(X_test).reshape(10000, 28)
+
+        print(np.shape(X_train))
+        print(np.shape(y_train))
+
+        clf = svm.SVC(kernel='rbf', verbose=True)
 
         clf.fit(X_train, y_train)
+
+        filename = 'svm.sav'
+        pickle.dump(clf, open(filename, 'wb'))
 
         y_pred = clf.predict(X_test)
 
@@ -326,5 +367,15 @@ class Preprocessing:
         # matplot.title("Confusion Matrix")
         # matplot.show()
 
-    def test(processedDigits):
+    def testSVM(digits):
+        clf = pickle.load(open('svm.sav', 'rb'))
+
+        digits = np.array(digits)
+        total, size = np.shape(digits)
+        # print(np.shape(digits))
+
+        digits = np.array(digits).reshape(total, 28)
+        y_pred = clf.predict(digits)
+
+        print("Numeros:", y_pred)
         print("")
