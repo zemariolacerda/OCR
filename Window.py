@@ -1,8 +1,6 @@
 import tkinter as tk
-import cv2
 from PIL import ImageTk, Image
 from tkinter import Label, filedialog
-import os
 import Preprocessing as pr
 # import Preprocessing
 

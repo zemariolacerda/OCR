@@ -1,31 +1,12 @@
-from os import truncate
 import cv2
 import numpy as np
 from keras.datasets import mnist
-from keras.layers import Dense, Flatten
-from keras.layers.convolutional import Conv2D
-from keras.models import Sequential
-from tensorflow.keras.utils import to_categorical
 import matplotlib.pyplot as plt
-from PIL import Image
 from joblib import Parallel, delayed
-from sklearn import model_selection, datasets, metrics
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.datasets import make_classification
-from sklearn.neighbors import DistanceMetric, KNeighborsClassifier
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import accuracy_score
-import joblib
+from sklearn import metrics
 import pickle
 import warnings
-import tensorflow as tf
-from tensorflow import keras
-from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC, LinearSVC
-import matplotlib.pyplot as matplot
-import seaborn as sb
 from sklearn import svm
-import scipy.interpolate as interp
 from scipy.ndimage import interpolation
 warnings.filterwarnings("ignore")
 
@@ -191,7 +172,6 @@ class Preprocessing:
             fig.add_subplot(1, 4, 4)
             plt.imshow(concat_p, cmap=plt.gray())
             plt.title("Projecao Concatenada")
-
             plt.show()
 
             print(a)
@@ -208,6 +188,8 @@ class Preprocessing:
             projectedDigits.append(array_compress)
 
             print(array_compress)
+            plt.plot(array_compress)
+            plt.show()
 
         # projectedDigits.reshape(28, 28)
         return projectedDigits
