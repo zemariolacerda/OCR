@@ -277,7 +277,7 @@ class Preprocessing:
         with open("y_test_database.txt", "wb") as fp:
             pickle.dump(y_test, fp)
 
-    def train():
+    def trainSVM():
         # setDatabase()
 
         with open("X_train_database.txt", "rb") as fp:
