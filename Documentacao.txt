@@ -5,3 +5,5 @@ pip install opencv-python
 pip install opencv-python-headless
 
 https://opencv24-python-tutorials.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_thresholding/py_thresholding.html
+
+TEMPO SVM: 15910.94 -> 4,4 horas

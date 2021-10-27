@@ -298,14 +298,14 @@ class Preprocessing:
         # print(np.shape(X_train))
         # print(np.shape(y_train))
 
-        # x_size = 60000
-        # y_size = 60000
+        x_size = 10000
+        y_size = 10000
 
-        # X_train = X_train[:x_size]
-        # y_train = y_train[:y_size]
+        X_train = X_train[:x_size]
+        y_train = y_train[:y_size]
 
-        # X_train = np.array(X_train).reshape(x_size, 28)
-        # X_test = np.array(X_test).reshape(10000, 28)
+        X_train = np.array(X_train).reshape(x_size, 28)
+        X_test = np.array(X_test).reshape(10000, 28)
 
         # print(np.shape(X_train))
         # print(np.shape(y_train))

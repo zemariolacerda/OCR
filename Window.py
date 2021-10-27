@@ -134,8 +134,7 @@ def projection():
 
 def test():
     global digits
-    t = timeit.timeit(lambda: pr.testSVM(digits), number=1)
-    print(t)
+    pr.testSVM(digits)
 
 
 window.mainloop()
