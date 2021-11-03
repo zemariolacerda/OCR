@@ -3,7 +3,6 @@ from PIL import ImageTk, Image
 from tkinter import Label, filedialog
 import Preprocessing as pr
 import timeit
-# import Preprocessing
 
 fileName = "imagem.png"
 image_threshold = 0
@@ -15,9 +14,6 @@ digits = []
 window = tk.Tk()
 
 canvas = tk.Canvas(window, width=1000, height=1000)
-# canvas.grid(columnspan=10, rowspan=10)
-# canvas.rowconfigure(0, weight=9)
-# canvas.columnconfigure(0, weight=9)
 
 browse_text = tk.StringVar()
 browse_btn = tk.Button(window, textvariable=browse_text,
@@ -51,25 +47,42 @@ projection_btn.grid(column=4, row=0)
 
 train_text = tk.StringVar()
 train_btn = tk.Button(window, textvariable=train_text,
-                      command=lambda: train(), font="Raleway")
-train_text.set("Treinar")
+                      command=lambda: trainSVM(), font="Raleway")
+train_text.set("Treinar SVM")
 train_btn.grid(column=5, row=0)
 
 test_text = tk.StringVar()
 test_btn = tk.Button(window, textvariable=test_text,
-                     command=lambda: test(), font="Raleway")
-test_text.set("Testar")
+                     command=lambda: testSVM(), font="Raleway")
+test_text.set("Testar SVM")
 test_btn.grid(column=6, row=0)
 
+train_text = tk.StringVar()
+train_btn = tk.Button(window, textvariable=train_text,
+                      command=lambda: trainRNN(), font="Raleway")
+train_text.set("Treinar RNN")
+train_btn.grid(column=7, row=0)
+
+test_text = tk.StringVar()
+test_btn = tk.Button(window, textvariable=test_text,
+                     command=lambda: testRNN(), font="Raleway")
+test_text.set("Testar RNN")
+test_btn.grid(column=8, row=0)
 
 initial_image = ImageTk.PhotoImage(Image.open(fileName))
 image_label = Label(image=initial_image)
-image_label.grid(column=0, row=1, columnspan=7)
+image_label.grid(column=0, row=1, columnspan=9)
 
 
-def train():
+def trainSVM():
     global digits
     t = timeit.timeit(lambda: pr.trainSVM(digits), number=1)
+    print(t)
+
+
+def trainRNN():
+    global digits
+    t = timeit.timeit(lambda: pr.trainRNN(digits), number=1)
     print(t)
 
 
@@ -90,7 +103,7 @@ def threshold_img():
     image = ImageTk.PhotoImage(image=Image.fromarray(image_array[2]))
     image_label = tk.Label(image=image)
     image_label.image = image
-    image_label.grid(column=0, row=1, columnspan=7)
+    image_label.grid(column=0, row=1, columnspan=9)
 
 
 def inverse_threshold_img():
@@ -102,7 +115,7 @@ def inverse_threshold_img():
     image = ImageTk.PhotoImage(image=Image.fromarray(image_array[2]))
     image_label = tk.Label(image=image)
     image_label.image = image
-    image_label.grid(column=0, row=1, columnspan=7)
+    image_label.grid(column=0, row=1, columnspan=9)
 
 
 def browseFiles():
@@ -124,7 +137,7 @@ def load():
     image = ImageTk.PhotoImage(image)
     image_label = tk.Label(image=image)
     image_label.image = image
-    image_label.grid(column=0, row=1, columnspan=7)
+    image_label.grid(column=0, row=1, columnspan=9)
 
 
 def projection():
@@ -132,9 +145,14 @@ def projection():
     digits = pr.projection(img_numbers)
 
 
-def test():
+def testSVM():
     global digits
     pr.testSVM(digits)
+
+
+def testRNN():
+    global digits
+    pr.testRNN(digits)
 
 
 window.mainloop()
