@@ -3,5 +3,17 @@ pip install tensorflow
 pip install testresources
 pip install opencv-python
 pip install opencv-python-headless
+pip install tk
+pip install joblib
+pip install numpy
+pip install keras
+pip install -U scikit-learn
 
 https://opencv24-python-tutorials.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_thresholding/py_thresholding.html
+https://www.tensorflow.org/api_docs/python/tf/keras/Sequential
+https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html
+
+Bibliografia
+https://www.cs.mcgill.ca/~colt2009/papers/021.pdf
+
+TEMPO SVM: 15910.94 -> 4,4 horas
