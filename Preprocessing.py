@@ -1,3 +1,11 @@
+# PONTIFICIA UNIVERSIDADE CATOLICA DE MINAS GERAIS
+#
+# PROCESSAMENTO DE IMAGENS
+#
+# José Mário de Carvalho Lacerda
+# Pedro Lages Ribeiro
+# Lucas Soriano de Oliveira
+
 import cv2
 import numpy as np
 from keras.datasets import mnist
@@ -10,7 +18,6 @@ from sklearn import svm
 from scipy.ndimage import interpolation
 import tensorflow as tf
 from tensorflow import keras
-
 warnings.filterwarnings("ignore")
 
 
@@ -23,20 +30,16 @@ class Preprocessing:
     global selectDigits
     global projection
     global sort_contours
-    global initializeDataset
-    global displayDatasetExample
     global projection_database
-    global train
     global threshold_database
     global process
-    global model
-    global testSVM
     global setDatabase
+    global testSVM
     global trainSVM
-    global define_model
-    global trainRNN
-    global testRNN
+    global trainSeq
+    global testSeq
 
+    # Ordena da esquerda para a direita os digitos contornados pela biblioteca de contorno do openCV
     def sort_contours(cnts):
         i = 0
         boundingBoxes = [cv2.boundingRect(c) for c in cnts]
@@ -45,6 +48,7 @@ class Preprocessing:
 
         return cnts
 
+    # Seleciona os digitos da imagem
     def selectDigits(img_directory, thresh):
         # Abre imagem original
         image = cv2.imread(img_directory)
@@ -92,6 +96,7 @@ class Preprocessing:
 
         return np.array(preprocessed_digits)
 
+    # Aplica Threshold na imagem
     def threshold(img_dir):
 
         # Carrega imagem com tons de cinza (parametro 0)
@@ -108,15 +113,7 @@ class Preprocessing:
 
         return threshold, image_array
 
-    def threshold_database(image):
-        # Recebe imagem da base e aplica blur
-        blur = cv2.GaussianBlur(image, (5, 5), 0)
-
-        # Aplica Threshold
-        ret, threshold = cv2.threshold(
-            blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        return threshold
-
+    # Aplica Threshold invertido na imagem
     def inv_threshold(img_dir):
         # Carrega imagem com tons de cinza (parametro 0)
         image = cv2.imread(img_dir, 0)
@@ -131,6 +128,17 @@ class Preprocessing:
         image_array = [blur, 0, threshold]
         return threshold, image_array
 
+    # Aplica Threshold nas imagens da base
+    def threshold_database(image):
+        # Recebe imagem da base e aplica blur
+        blur = cv2.GaussianBlur(image, (5, 5), 0)
+
+        # Aplica Threshold
+        ret, threshold = cv2.threshold(
+            blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        return threshold
+
+    # Calcula projecao dos digitos da imagem
     def projection(preprocessed_digits):
         projectedDigits = []
         for digit in preprocessed_digits:
@@ -206,10 +214,11 @@ class Preprocessing:
 
         return np.array(projectedDigits)
 
+    # Calcula projecao dos digitos da base
     def projection_database(digit):
         vertical_p = digit.copy()
         horizontal_p = digit.copy()
-        concat_p = digit.copy()
+
         (h, w) = vertical_p.shape
         (h, w) = horizontal_p.shape
         a = [0 for z in range(0, w)]
@@ -219,24 +228,11 @@ class Preprocessing:
             for i in range(0, h):  # Caminha pela linha
                 if vertical_p[i, j] == 0:  # Verifica se o ponto é preto
                     a[j] += 1  # Contador vertical
-                    vertical_p[i, j] = 255  # Transforma o ponto em branco
-
-        for j in range(0, w):  # Caminha pelas colunas
-            # Comeca da posicao mais alta da coluna que deveria ser preta ate o fim
-            for i in range((h-a[j]), h):
-                vertical_p[i, j] = 0  # Transforma o ponto em preto
 
         for j in range(0, h):  # Caminha pela linha
             for i in range(0, w):  # Caminha pela coluna
                 if horizontal_p[j, i] == 0:  # Verifica se o ponto é preto
                     b[j] += 1   # Contador horizontal
-                    # Transforma o ponto em branco
-                    horizontal_p[j, i] = 255
-
-        for j in range(0, h):  # Caminha pela linha
-            # Comeca da posicao mais alta da linha que deveria ser preta ate o fim
-            for i in range(0, b[j]):
-                horizontal_p[j, i] = 0  # Transforma ponto em preto
 
         # interpopla a soma dos arrays (originalmente um array de 56 posicoes) num array de tamanho 28
         a = np.array(a)
@@ -254,35 +250,43 @@ class Preprocessing:
 
     # Processa as imagens da base para prepara-las para o aprendizado de maquina
     def setDatabase():
-        # Carrega a base do mnist. x_train
+        # Carrega a base do mnist.
+        # x_train e y_train sao partes da base a serem usadas como treinamento
+        # x_test e y_test sao partes da base a serem usadas como teste
         (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-        X_train_proj = []
-        X_train_proj = Parallel(n_jobs=4)(
+        # Chama o metodo process em paralelo para gerar a projecao interpolada das imagens da base de treino
+        x_train_proj = []
+        x_train_proj = Parallel(n_jobs=4)(
             delayed(process)(i) for i in x_train)
 
-        X_test_proj = []
-        X_test_proj = Parallel(n_jobs=4)(
+        # Chama o metodo process em paralelo para gerar a projecao interpolada das imagens da base de treino
+        x_test_proj = []
+        x_test_proj = Parallel(n_jobs=4)(
             delayed(process)(i) for i in x_test)
 
-        x_train = np.array(X_train_proj)
-        x_test = np.array(X_test_proj)
+        x_train = np.array(x_train_proj)
+        x_test = np.array(x_test_proj)
 
-        with open("X_train_database.txt", "wb") as fp:
+        # Armazena no diretorio do programa as projecoes ja calculadas
+        with open("x_train_database.txt", "wb") as fp:
             pickle.dump(x_train, fp)
 
         with open("y_train_database.txt", "wb") as fp:
             pickle.dump(y_train, fp)
 
-        with open("X_test_database.txt", "wb") as fp:
+        with open("x_test_database.txt", "wb") as fp:
             pickle.dump(x_test, fp)
 
         with open("y_test_database.txt", "wb") as fp:
             pickle.dump(y_test, fp)
 
+    # Treina SVM
     def trainSVM(digits):
+        # Processa as imagens
         # setDatabase()
 
+        # Carrega as projecoes armazenadas pelo metodo setDatabase()
         with open("X_train_database.txt", "rb") as fp:
             x_train = pickle.load(fp)
 
@@ -295,41 +299,51 @@ class Preprocessing:
         with open("y_test_database.txt", "rb") as fp:
             y_test = pickle.load(fp)
 
+        # Tamanho das entradas
         x_size = 10000
         y_size = 10000
 
+        # Altera os arrays de 60000 para 10000, pois a SVM ja esta muito demorada com apenas 10000
         x_train = x_train[:x_size]
         y_train = y_train[:y_size]
 
+        # Mudando o shape dos arrays para entrarem em conformidade com o modelo
         x_train = np.array(x_train).reshape(x_size, 28)
         x_test = np.array(x_test).reshape(10000, 28)
 
+        # Cria o modelo
         svmModel = svm.SVC(kernel='poly', degree=5, verbose=True)
 
+        # Treinca o modelo
         svmModel.fit(x_train, y_train)
 
+        # Persiste o modelo
         filename = 'svm.sav'
         pickle.dump(svmModel, open(filename, 'wb'))
 
+        # Calcula a precisao do modelo
         y_pred = svmModel.predict(x_test)
-
         print("Accuracy:", metrics.accuracy_score(y_test, y_pred))
 
+    # Testa SVM
     def testSVM(digits):
-        clf = pickle.load(open('svm.sav', 'rb'))
+        # Carrega o modelo SVM armazenado no diretorio do programa
+        svm = pickle.load(open('svm.sav', 'rb'))
 
-        digits = np.array(digits)
+        # Formata os digitos para poderem ser usados pelo classificador
         total, size = np.shape(digits)
-        # print(np.shape(digits))
-
         digits = np.array(digits).reshape(total, 28)
-        y_pred = clf.predict(digits)
 
+        # Classifica os digitos
+        y_pred = svm.predict(digits)
         print("Numeros:", y_pred)
 
-    def trainRNN(digits):
-        setDatabase()
+    # Treina Sequencial
+    def trainSeq(digits):
+        # Processa as imagens
+        # setDatabase()
 
+        # Carrega as projecoes armazenadas pelo metodo setDatabase()
         with open("X_train_database.txt", "rb") as fp:
             x_train = pickle.load(fp)
 
@@ -342,34 +356,37 @@ class Preprocessing:
         with open("y_test_database.txt", "rb") as fp:
             y_test = pickle.load(fp)
 
+        # Cria o modelo
         model = keras.Sequential([
-            keras.layers.Flatten(),
-            keras.layers.Dense(28, activation='relu'),
+            keras.layers.Dense(128, activation='relu'),
+            keras.layers.Dense(64, activation='relu'),
+            keras.layers.Dense(32, activation='relu'),
             keras.layers.Dense(10, activation='relu'),
         ])
 
+        # Compila o modelo
         model.compile(optimizer='adam',
                       loss='sparse_categorical_crossentropy',
                       metrics=['accuracy'])
 
+        # Treina o modelo
         model.fit(x_train, y_train, validation_data=(
             x_test, y_test), epochs=10)
-        model.save('resources/NNN')
 
-    def testRNN(digits):
-        with open("X_test_database.txt", "rb") as fp:
-            x_test = pickle.load(fp)
+        # Armazena o modelo
+        model.save('seq')
 
-        with open("y_test_database.txt", "rb") as fp:
-            y_test = pickle.load(fp)
+        # Calcula a precisao do modelo
+        _, accuracy = model.evaluate(x_test, y_test)
+        print("Precisao: ", accuracy)
 
-        model = tf.keras.models.load_model('resources/NNN')
+    # Testa Sequencial
+    def testSeq(digits):
+        # Carrega o modelo armazenado no diretorio do programa
+        model = tf.keras.models.load_model('seq')
 
-        test_loss, test_acc = model.evaluate(x_test, y_test)
-        print("Precisao: ", test_acc)
-
-        y_pred = []
         for d in digits:
+            # Formata os digitos para que entrem em conformidade com o modelo
             pred = model.predict(d.reshape(1, 28))
             print(np.argmax(pred), end=" ")
-            y_pred.append(pred)
+        print("")
